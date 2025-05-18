@@ -1,0 +1,65 @@
+version: '3.8'
+services:
+  ## 데이터 베이스
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - msa-network
+  
+  ## 메시지 큐 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - msa-network
+
+  ## Gateway server 
+  gateway:
+    build:
+      context: ./gateways
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - '3000:3000'
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      - user-service
+      - rabbitmq
+    networks:
+      - msa-network
+
+  ## Auth server
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/user-service
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - JWT_SECRET=your-secret-key
+      - JWT_REFRESH_SECRET=your-refresh-secret-key
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - msa-network
+
+  ## Event server
+
+networks:
+  msa-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
