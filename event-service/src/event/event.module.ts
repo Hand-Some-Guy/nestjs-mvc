@@ -8,11 +8,13 @@ import { EventController } from './event.controller';
 import { EventService } from './event.service';
 import { EventMongoose } from 'src/repository/event.repository';
 import { RewardMongoose } from 'src/repository/reward.repository';
+import { ClaimMongoose } from 'src/repository/claim.repository';
 
 // 스키마 정보 
 import { EventDocument, EventSchema } from '../model/event.schema';
 import { RewardDocument, RewardSchema } from '../model/reward.schema';
 import { ClaimDocument, ClaimSchema } from '../model/claim.schema';
+
 
 @Module({
   imports: [
@@ -33,6 +35,6 @@ import { ClaimDocument, ClaimSchema } from '../model/claim.schema';
   ],
   // 의존성 주입 
   controllers: [EventController],
-  providers: [EventService, EventMongoose, RewardMongoose],
+  providers: [EventService, EventMongoose, RewardMongoose, ClaimMongoose],
 })
 export class EventModule {}

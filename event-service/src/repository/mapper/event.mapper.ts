@@ -9,13 +9,8 @@ export class EventMapper {
             doc.title,  
             doc.dateAdded, 
             doc.dateStart, 
-            doc.duration
+            doc.duration,
+            doc.state
         );
-    }
-
-    static toPersistence(aggregate: Event): Partial<EventDocument> {
-        return {
-            // token: aggregate.getToken(),
-        };
     }
 }

@@ -13,11 +13,11 @@ interface EventRepository {
     dateAdded: Date,
     dateStart: Date,
     duration: number,
+    state: string
   ): Promise<Event>;
   getAll(): Promise<Event[]>;
   findById(eid: string): Promise<Event | null>;
   updateReward(eid: string, rid: string): Promise<void>;
-//   update(eid: string, data: Partial<Event>): Promise<void>;
   delete(eid: string): Promise<void>;
 }
 
@@ -33,6 +33,7 @@ export class EventMongoose implements EventRepository {
     dateAdded: Date,
     dateStart: Date,
     duration: number,
+    state: string
   ): Promise<Event> {
     const eventDoc = new this.eventModel({
       rid,
@@ -40,6 +41,7 @@ export class EventMongoose implements EventRepository {
       dateAdded,
       dateStart,
       duration,
+      state
     });
     const savedEvent = await eventDoc.save();
     return EventMapper.toDomain(savedEvent);
@@ -56,12 +58,11 @@ export class EventMongoose implements EventRepository {
   }
 
   async updateReward(eid: string, rid: string): Promise<void> {
-    await this.eventModel.updateOne({ _id: eid }, { rid }).exec();
+    this.eventModel.findOneAndUpdate(
+      { _id: eid }, 
+      { $set: { rid } }
+    ).exec();
   }
-
-//   async update(eid: string, data: Partial<Event>): Promise<void> {
-//     await this.eventModel.updateOne({ _id: eid }, EventMapper.toPersistence(data)).exec();
-//   }
 
   async delete(eid: string): Promise<void> {
     await this.eventModel.deleteOne({ _id: eid }).exec();

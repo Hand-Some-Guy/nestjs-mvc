@@ -18,13 +18,14 @@ export class EventController {
       data.dateAdded,
       data.dateStart,
       data.duration,
+      data.state
     );
   }
 
   @MessagePattern({ cmd: 'eventSearch' })
-  async eventSearch(data: EventSearchDto) {
-    this.logger.log(`EventSearch called with eid: ${data.eid}`);
-    return this.eventService.eventSearch(data.eid);
+  async eventSearch() {
+    this.logger.log(`EventSearch called with eid: `);
+    return this.eventService.eventSearch();
   }
 
   @MessagePattern({ cmd: 'eventDetail' })
@@ -39,9 +40,12 @@ export class EventController {
     return this.eventService.rewardAdd(data.eid, data.items, data.amount, data.condition);
   }
 
-  @MessagePattern({ cmd: 'rewardSearch' })
-  async rewardSearch(data: RewardSearchDto) {
+  @MessagePattern({ cmd: 'rewardRequest' })
+  async rewardRequest(data: { uid: string, rid: string, eid: string }) {
     this.logger.log(`RewardSearch called with rid: ${data.rid}`);
-    return this.eventService.rewardSearch(data.rid);
+    return this.eventService.rewardRequest(data.uid, data.rid, data.eid);
   }
+
+  
+   
 }

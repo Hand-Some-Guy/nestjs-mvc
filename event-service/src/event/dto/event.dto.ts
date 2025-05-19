@@ -1,4 +1,6 @@
 
+export type EventState = "Active" | "Disable"
+
 export class EventAddDto {
   title: string;
 
@@ -9,6 +11,8 @@ export class EventAddDto {
   dateStart: string;
 
   duration: number;
+
+  state: EventState
 }
 
 export class EventSearchDto {
@@ -44,4 +48,13 @@ export interface RewardResponse {
   items: string[];
   amount: number[];
   condition: string[];
+}
+
+export interface ClaimResponse {
+  cid: string;
+  uid: string;
+  rid: string;
+  eid: string;
+  state: string;
+  awardedAt: string;
 }

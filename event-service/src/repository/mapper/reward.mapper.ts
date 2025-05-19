@@ -8,7 +8,7 @@ export class RewardMapper {
             doc.eid, 
             doc.items,  
             doc.amount, 
-            doc.conditon, 
+            doc.condition, 
         );
     }
 

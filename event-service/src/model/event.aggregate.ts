@@ -1,3 +1,5 @@
+import { EventState } from "src/event/dto/event.dto";
+
 export class Event {
   private eid: string;
   private rid: string | null;
@@ -5,6 +7,7 @@ export class Event {
   private dateAdded: Date;
   private dateStart: Date;
   private duration: number;
+  private state: EventState;
 
   constructor(
     eid: string,
@@ -13,6 +16,7 @@ export class Event {
     dateAdded: Date,
     dateStart: Date,
     duration: number,
+    state: EventState,
   ) {
     this.validate(title, dateAdded, dateStart, duration);
     this.eid = eid;
@@ -21,6 +25,7 @@ export class Event {
     this.dateAdded = dateAdded;
     this.dateStart = dateStart;
     this.duration = duration;
+    this.state = state
   }
 
   private validate(title: string, dateAdded: Date, dateStart: Date, duration: number): void {
@@ -60,5 +65,9 @@ export class Event {
 
   public getDuration(): number {
     return this.duration;
+  }
+
+  public getState(): EventState {
+    return this.state;
   }
 }

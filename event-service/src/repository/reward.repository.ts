@@ -15,8 +15,6 @@ interface RewardRepository {
     ): Promise<Reward>;
     getAll(): Promise<Reward[]>;
     findById(rid: string): Promise<Reward | null>;
-    // update(rid: string, data: Partial<Reward>): Promise<void>;
-    // delete(rid: string): Promise<void>;
 }
 
 @Injectable()

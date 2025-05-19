@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { EventState } from 'src/event/dto/event.dto';
 
 @Schema()
 export class EventDocument extends Document {
@@ -17,6 +18,9 @@ export class EventDocument extends Document {
 
   @Prop({ required: true })
   duration: number;
+
+  @Prop({ required: true })
+  state: EventState;
 }
 
 export const EventSchema = SchemaFactory.createForClass(EventDocument);
