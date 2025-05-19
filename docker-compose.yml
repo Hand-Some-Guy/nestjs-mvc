@@ -56,6 +56,21 @@ services:
       - msa-network
 
   ## Event server
+  event-service:
+    build:
+      context: ./event-service
+      dockerfile: Dockerfile
+    container_name: event-service
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/event-service
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - JWT_SECRET=your-secret-key
+      - JWT_REFRESH_SECRET=your-refresh-secret-key
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - msa-network
 
 networks:
   msa-network:
