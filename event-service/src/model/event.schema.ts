@@ -1,25 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-
 @Schema()
 export class EventDocument extends Document {
+  @Prop({ required: true, unique: true })
+  title: string;
 
-    @Prop({ required: true, unique: true })
-    title: string;
+  @Prop({ required: false })
+  rid: string;
 
-    @Prop({ required: true })
-    rid: string;
+  @Prop({ required: true, index: true })
+  dateAdded: Date;
 
-    @Prop({ required: true })
-    dateAdded: Date;
+  @Prop({ required: true, index: true })
+  dateStart: Date;
 
-    @Prop({ required: true })
-    dateStart: Date;
-
-    @Prop({ required: true })
-    duration: number;
-
+  @Prop({ required: true })
+  duration: number;
 }
 
 export const EventSchema = SchemaFactory.createForClass(EventDocument);

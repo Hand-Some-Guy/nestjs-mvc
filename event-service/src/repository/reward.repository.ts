@@ -7,66 +7,55 @@ import { RewardDocument } from '../model/reward.schema';
 import { RewardMapper } from './mapper/reward.mapper';
 
 interface RewardRepository {
-    create( 
-        rid: string, 
-        eid: string, 
-        items: string[], 
-        amount: number[], 
-        conditon: string[]
+    create(
+    eid: string,
+    items: string[],
+    amount: number[],
+    condition: string[],
     ): Promise<Reward>;
-
     getAll(): Promise<Reward[]>;
-
-    findById(rid: string): Promise<Reward>;
-    
-    update(rid: string): Promise<void>;
-
-    delete(rid: string): Promise<void>;
+    findById(rid: string): Promise<Reward | null>;
+    // update(rid: string, data: Partial<Reward>): Promise<void>;
+    // delete(rid: string): Promise<void>;
 }
 
 @Injectable()
-export class RewardMongoose implements RewardRepository{
+export class RewardMongoose implements RewardRepository {
+  constructor(
+    @InjectModel(RewardDocument.name) private rewardModel: Model<RewardDocument>,
+  ) {}
 
-    constructor(
-        @InjectModel(RewardDocument.name) private rewardModel: Model<RewardDocument>,
-    ){}
+  async create(
+    eid: string,
+    items: string[],
+    amount: number[],
+    condition: string[],
+  ): Promise<Reward> {
+    const rewardDoc = new this.rewardModel({
+      eid,
+      items,
+      amount,
+      condition,
+    });
+    const savedReward = await rewardDoc.save();
+    return RewardMapper.toDomain(savedReward);
+  }
 
-    async create(
-        rid: string, 
-        eid: string, 
-        items: string[],
-        amount: number[], 
-        conditon: string[]
-    ): Promise<Reward> {
-        const rewardDoc = new this.rewardModel({ 
-                eid: eid,
-                rid: rid,
-                items: items,
-                amount: amount,
-                conditon: conditon
-            });
-        const saveReward = await rewardDoc.save()
+  async getAll(): Promise<Reward[]> {
+    const rewardsDoc = await this.rewardModel.find().exec();
+    return rewardsDoc.map(RewardMapper.toDomain);
+  }
 
-        return RewardMapper.toDomain(saveReward)
-    }
+  async findById(rid: string): Promise<Reward | null> {
+    const rewardDoc = await this.rewardModel.findById(rid).exec();
+    return rewardDoc ? RewardMapper.toDomain(rewardDoc) : null;
+  }
 
-    async getAll(): Promise<Reward[]> {
-        const rewardsDoc = await this.rewardModel.find().exec()
-        return rewardsDoc.map(RewardMapper.toDomain)
-    }
+//   async update(rid: string, data: Partial<Reward>): Promise<void> {
+//     await this.rewardModel.updateOne({ _id: rid }, RewardMapper.toPersistence(data)).exec();
+//   }
 
-    async findById(rid: string): Promise<Reward> {
-        const rewardsDoc = await this.rewardModel.findOne({ _id: rid }).exec()
-        return rewardsDoc? RewardMapper.toDomain(rewardsDoc) : null
-    }
-
-    update(rid: string): Promise<void> {
-        throw new Error('Method not implemented.');
-    }
-
-    delete(rid: string): Promise<void> {
-        throw new Error('Method not implemented.');
-    }
-    
-    
+//   async delete(rid: string): Promise<void> {
+//     await this.rewardModel.deleteOne({ _id:'at  rid }).exec();
+//   }
 }

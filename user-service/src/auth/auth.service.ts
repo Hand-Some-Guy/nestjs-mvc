@@ -15,6 +15,16 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  async register(registerDto: RegisterDto): Promise<UserResponse> {
+    const duplicate = await this.userRepository.findById(registerDto.id);
+    if (duplicate) {
+      throw new UnauthorizedException('Duplicate user');
+    }
+
+    const user = await this.userRepository.create(registerDto.id, registerDto.password);
+    return { id: user.getId(), role: user.getRole() };
+  }
+
   async login(loginDTO: LoginDto): Promise<LoginResponse> {
     const user = await this.userRepository.findById(loginDTO.id);
 
@@ -34,6 +44,7 @@ export class AuthService {
     await this.refreshTokenRepository.delete(user.getId())
     // 신규 토큰 등록
     await this.refreshTokenRepository.create(user.getId(), refreshToken);
+    // 로그인 기록 추가 
 
     return { accessToken, refreshToken };
   }
@@ -62,7 +73,6 @@ export class AuthService {
     }
   }
 
-  // 권한 업데이트 - 완료
   async updateRole(updateRoleDto: UpdateRoleDto): Promise<UserResponse> {
     const user = await this.userRepository.findById(updateRoleDto.targetid);
     if (!user) {
@@ -72,15 +82,5 @@ export class AuthService {
     return { id: user.getId(), role: updateRoleDto.role };
   }
 
-  // 유저 등록 - 완료 
-  async register(registerDto: RegisterDto): Promise<UserResponse> {
-    const duplicate = await this.userRepository.findById(registerDto.id);
-    if (duplicate) {
-      throw new UnauthorizedException('Duplicate user');
-    }
-    
-
-    const user = await this.userRepository.create(registerDto.id, registerDto.password);
-    return { id: user.getId(), role: user.getRole() };
-  }
+  
 }

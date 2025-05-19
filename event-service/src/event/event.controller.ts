@@ -1,7 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { EventService } from './event.service';
-// import { LoginDto, RefreshDto, RegisterDto, UpdateRoleDto } from './dto/user.dto';
+import { EventAddDto, EventSearchDto, RewardAddDto, RewardSearchDto } from './dto/event.dto';
 
 @Controller()
 export class EventController {
@@ -10,28 +10,38 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @MessagePattern({ cmd: 'eventAdd' })
-  async eventAdd(data :any) {
-    // this.logger.log(`Login called with id: ${loginDTO.id} ${loginDTO.password}`);
-    return this.eventService.eventAdd();
+  async eventAdd(data: EventAddDto) {
+    this.logger.log(`EventAdd called with title: ${data.title}`);
+    return this.eventService.eventAdd(
+      data.title,
+      data.rid,
+      data.dateAdded,
+      data.dateStart,
+      data.duration,
+    );
   }
 
   @MessagePattern({ cmd: 'eventSearch' })
-  async eventSearch(data :any) {
-    return this.eventService.eventSearch();
+  async eventSearch(data: EventSearchDto) {
+    this.logger.log(`EventSearch called with eid: ${data.eid}`);
+    return this.eventService.eventSearch(data.eid);
   }
 
   @MessagePattern({ cmd: 'eventDetail' })
-  async eventDetail(data :any) {
-    return this.eventService.eventDetail();
+  async eventDetail(data: EventSearchDto) {
+    this.logger.log(`EventDetail called with eid: ${data.eid}`);
+    return this.eventService.eventDetail(data.eid);
   }
 
   @MessagePattern({ cmd: 'rewardAdd' })
-  async rewardAdd(data :any) {
-    return this.eventService.rewardAdd(); 
+  async rewardAdd(data: RewardAddDto) {
+    this.logger.log(`RewardAdd called with eid: ${data.eid}`);
+    return this.eventService.rewardAdd(data.eid, data.items, data.amount, data.condition);
   }
 
   @MessagePattern({ cmd: 'rewardSearch' })
-  async rewardSearch(data :any) {
-    return this.eventService.rewardSearch(); 
+  async rewardSearch(data: RewardSearchDto) {
+    this.logger.log(`RewardSearch called with rid: ${data.rid}`);
+    return this.eventService.rewardSearch(data.rid);
   }
 }

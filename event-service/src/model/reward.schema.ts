@@ -3,19 +3,17 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class RewardDocument extends Document {
+  @Prop({ required: true, index: true })
+  eid: string;
 
-    @Prop({ required: true })
-    eid: string;
+  @Prop({ required: true })
+  items: string[];
 
-    @Prop({ required: true })
-    items: string[];
+  @Prop({ required: true })
+  amount: number[];
 
-    @Prop({ required: true })
-    amount: number[];
-
-    @Prop({ required: true })
-    conditon: string[];
-
+  @Prop({ required: true })
+  condition: string[];
 }
 
 export const RewardSchema = SchemaFactory.createForClass(RewardDocument);
