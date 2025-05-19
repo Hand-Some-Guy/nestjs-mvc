@@ -6,8 +6,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 // 레이어 정보 
 import { EventController } from './event.controller';
 import { EventService } from './event.service';
-// import { RefreshTokenMongoose } from 'src/repository/refresh-token.repository';
-// import { UserMongoose } from 'src/repository/user.repository';
+import { EventMongoose } from 'src/repository/event.repository';
+import { RewardMongoose } from 'src/repository/reward.repository';
 
 // 스키마 정보 
 import { EventDocument, EventSchema } from '../model/event.schema';
@@ -33,6 +33,6 @@ import { ClaimDocument, ClaimSchema } from '../model/claim.schema';
   ],
   // 의존성 주입 
   controllers: [EventController],
-//   providers: [EventService, RefreshTokenMongoose, UserMongoose],
+  providers: [EventService, EventMongoose, RewardMongoose],
 })
 export class EventModule {}

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 // repository 레이어
-// import { RefreshTokenMongoose } from 'src/repository/refresh-token.repository';
-// import { UserMongoose } from 'src/repository/user.repository';
+import { EventMongoose } from 'src/repository/event.repository';
+import { RewardMongoose } from 'src/repository/reward.repository';
 // 타입정보
 // import { JwtPayload, LoginDto, LoginResponse, RefreshDto, RefreshResponse, RegisterDto, UpdateRoleDto, UserResponse } from './dto/user.dto';
 
@@ -10,8 +10,8 @@ export class EventService {
 
   private readonly logger = new Logger(EventService.name);
   constructor(
-    // private readonly userRepository: UserMongoose,
-    // private readonly refreshTokenRepository: RefreshTokenMongoose,
+    private readonly eventMongoose: EventMongoose,
+    private readonly rewardMongoose: RewardMongoose,
   ) {}
 
   async eventAdd(): Promise<void> {
