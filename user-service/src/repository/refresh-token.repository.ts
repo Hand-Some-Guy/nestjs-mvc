@@ -28,9 +28,7 @@ export class RefreshTokenMongoose implements RefreshTokenRepository {
     async create(uid: string, token: string): Promise<RefreshToken>{
         const refreshTokenDoc = new this.refreshTokenModel({ uid: uid, token: token });
         const savetoken = await refreshTokenDoc.save()
-        const t = RefreshTokenMapper.toDomain(savetoken)
-
-        return t
+        return RefreshTokenMapper.toDomain(savetoken)
     }
 
     async getAll(): Promise<RefreshToken[]> {

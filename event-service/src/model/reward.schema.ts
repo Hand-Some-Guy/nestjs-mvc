@@ -13,6 +13,9 @@ export class RewardDocument extends Document {
     @Prop({ required: true })
     amount: number[];
 
+    @Prop({ required: true })
+    conditon: string[];
+
 }
 
 export const RewardSchema = SchemaFactory.createForClass(RewardDocument);

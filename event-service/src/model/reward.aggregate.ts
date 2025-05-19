@@ -1,6 +1,6 @@
 
 // 엔티티 객체 
-export class User{
+export class Reward{
     private rid: string;
     private eid: string;
     private items: string[];

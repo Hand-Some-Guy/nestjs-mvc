@@ -9,7 +9,7 @@ export class EventDocument extends Document {
     title: string;
 
     @Prop({ required: true })
-    eid: string;
+    rid: string;
 
     @Prop({ required: true })
     dateAdded: Date;
