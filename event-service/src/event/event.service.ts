@@ -226,72 +226,121 @@ export class EventService {
   }
 
   async rewardRequest(uid: string, rid: string, eid: string): Promise<ClaimResponse> {
-    try {
-      // 활동 기록 집계 
-      this.logger.log(`Checking user existence for uid: ${uid}`);
-      const activeCnt = await lastValueFrom(
-        this.userClient.send({ cmd: 'activeTypeCnt' }, { uid: uid }),
-      );
+  try {
+    // 활동 기록 집계
+    this.logger.log(`Checking user existence and activity for uid: ${uid}`);
+    const activeCnt = await lastValueFrom(
+      this.userClient.send({ cmd: 'activeTypeCnt' }, { uid: uid }),
+    ).catch(err => {
+      this.logger.error(`Failed to fetch activity count: ${err.message}`);
+      throw new BadRequestException('Failed to communicate with User Service');
+    });
 
-      const event = await this.eventMongoose.findById(eid);
-      if (!event) {
-        throw new NotFoundException(`Event not found with eid: ${eid}`);
-      }
-
-      const reward = await this.rewardMongoose.findById(rid);
-      if (!reward) {
-        throw new NotFoundException(`Reward not found with rid: ${rid}`);
-      }
-
-      // 이벤트 활성화 여부 검사
-      if (event.getState() !== 'ACTIVE') {
-        throw new BadRequestException('Event is not active');
-      }
-
-      // 이벤트 기간 확인
-      const now = new Date();
-      const eventStart = event.getDateStart();
-      const eventEnd = new Date(eventStart.getTime() + event.getDuration() * 24 * 60 * 60 * 1000);
-      if (now < eventStart || now > eventEnd) {
-        throw new BadRequestException('Event is not within active period');
-      }
-
-      // 보상 조건 확인
-      const conditions = event.getCondition();
-      const conditionNums = event.getConditionNum();
-      const conditionTypes = event.getConditionType();
-      // TODO: 실제 조건 확인 로직 (예: 사용자 데이터 기반)
-      const conditionsMet = true; // Placeholder
-      if (!conditionsMet) {
-        throw new BadRequestException('Event conditions not met');
-      }
-
-      // 중복 지급 방지
-      const existingClaim = await this.claimMongoose.findByUserAndEvent(uid, eid);
-      if (existingClaim && existingClaim.getState() === 'awarded') {
-        throw new BadRequestException('Reward already claimed');
-      }
-
-      // 보상 지급 및 이력 저장
-      const claim = await this.claimMongoose.create(uid, rid, eid, 'awarded');
-      this.logger.log(`Reward requested for uid: ${uid}, rid: ${rid}, eid: ${eid}`);
-
-      return {
-        cid: claim.getCid(),
-        uid: claim.getUid(),
-        rid: claim.getRid(),
-        eid: claim.getEid(),
-        state: claim.getState(),
-        awardedAt: claim.getAwardedAt().toISOString(),
-      };
-    } catch (error) {
-      this.logger.error(`Reward request failed: ${error.message}`);
-      await this.claimMongoose.create(uid, rid, eid, 'failed').catch(err => {
-        this.logger.error(`Failed to save claim failure: ${err.message}`);
-      });
-      throw error;
+    const event = await this.eventMongoose.findById(eid);
+    if (!event) {
+      throw new NotFoundException(`Event not found with eid: ${eid}`);
     }
+
+    const reward = await this.rewardMongoose.findById(rid);
+    if (!reward) {
+      throw new NotFoundException(`Reward not found with rid: ${rid}`);
+    }
+
+    // 이벤트 활성화 여부 검사
+    if (event.getState() !== 'ACTIVE') {
+      throw new BadRequestException('Event is not active');
+    }
+
+    // 이벤트 기간 확인
+    const now = new Date();
+    const eventStart = event.getDateStart();
+    const eventEnd = new Date(eventStart.getTime() + event.getDuration() * 24 * 60 * 60 * 1000);
+    if (now < eventStart || now > eventEnd) {
+      throw new BadRequestException('Event is not within active period');
+    }
+
+    // 보상 조건 확인
+    const conditions = event.getCondition();
+    const conditionNums = event.getConditionNum();
+    const conditionTypes = event.getConditionType();
+
+    // 배열 길이 검사
+    if (conditions.length !== conditionNums.length || conditions.length !== conditionTypes.length) {
+      throw new BadRequestException('Invalid event condition configuration');
+    }
+
+    // 조건이 없는 경우 처리
+    if (conditions.length === 0) {
+      this.logger.warn(`No conditions defined for event eid: ${eid}`);
+    } else {
+      for (let i = 0; i < conditions.length; i++) {
+        const condition = conditions[i];
+        const requiredNum = conditionNums[i];
+        const type = conditionTypes[i];
+
+        // 유효한 연산자 검사
+        if (!['<', '>', '='].includes(condition)) {
+          throw new BadRequestException(`Invalid condition operator: ${condition}`);
+        }
+
+        // 활동 개수 조회, 없으면 0
+        const num = activeCnt[type] ?? 0;
+
+        this.logger.log(`Checking condition: ${type} ${condition} ${requiredNum}, actual: ${num}`);
+
+        // 비교 로직
+        switch (condition) {
+          case '<':
+            if (num >= requiredNum) {
+              throw new BadRequestException(
+                `Condition not met: ${type} must be less than ${requiredNum}, got ${num}`,
+              );
+            }
+            break;
+          case '>':
+            if (num <= requiredNum) {
+              throw new BadRequestException(
+                `Condition not met: ${type} must be greater than ${requiredNum}, got ${num}`,
+              );
+            }
+            break;
+          case '=':
+            if (num !== requiredNum) {
+              throw new BadRequestException(
+                `Condition not met: ${type} must equal ${requiredNum}, got ${num}`,
+              );
+            }
+            break;
+        }
+      }
+    }
+
+    // 중복 지급 방지
+    const existingClaim = await this.claimMongoose.findByUserAndEvent(uid, eid);
+    if (existingClaim && existingClaim.getState() === 'awarded') {
+      throw new BadRequestException('Reward already claimed');
+    }
+
+    // 보상 지급 및 이력 저장
+    const claim = await this.claimMongoose.create(uid, rid, eid, 'awarded');
+    this.logger.log(`Reward requested for uid: ${uid}, rid: ${rid}, eid: ${eid}`);
+
+    return {
+      cid: claim.getCid(),
+      uid: claim.getUid(),
+      rid: claim.getRid(),
+      eid: claim.getEid(),
+      state: claim.getState(),
+      awardedAt: claim.getAwardedAt().toISOString(),
+    };
+  } catch (error) {
+    this.logger.error(`Reward request failed: ${error.message}`);
+    await this.claimMongoose.create(uid, rid, eid, 'failed').catch(err => {
+      this.logger.error(`Failed to save claim failure: ${err.message}`);
+    });
+    throw error;
   }
+}
 
   async claimSearchByFilter(id: string, filterType: 'uid' | 'eid' | 'rid'): Promise<ClaimResponse[]> {
     try {
