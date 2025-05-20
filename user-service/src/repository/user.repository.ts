@@ -7,12 +7,13 @@ import { User } from "src/model/user.aggregate";
 import { UserDocument  } from '../model/user.schema';
 
 import { UserMapper } from './mapper/user.mapper';
+import { Role } from 'src/auth/dto/user.dto';
 
 interface UserRepository {
-  create(id: string, password: string, role?: string): Promise<User>;
+  create(id: string, password: string, role?: Role): Promise<User>;
   getAll(): Promise<User[]>;
   findById(userId: string): Promise<User | null>;
-  updateRole(id: string, role: string): Promise<void>;
+  updateRole(id: string, role: Role): Promise<void>;
   delete(userId: string): Promise<void>;
 }
 
@@ -22,7 +23,7 @@ export class UserMongoose implements UserRepository {
     @InjectModel(UserDocument.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async create(uid: string, password: string, role: string = 'user'): Promise<User> {
+  async create(uid: string, password: string, role: Role = 'USER'): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userDoc = new this.userModel({ uid: uid, password: hashedPassword, role: role });
     const savedDoc = await userDoc.save();
@@ -39,7 +40,7 @@ export class UserMongoose implements UserRepository {
     return userDoc ? UserMapper.toDomain(userDoc) : null;
   }
 
-  async updateRole(uid: string, role: string): Promise<void> {
+  async updateRole(uid: string, role: Role): Promise<void> {
     await this.userModel.updateOne({ uid: uid }, { role }).exec();
   }
 

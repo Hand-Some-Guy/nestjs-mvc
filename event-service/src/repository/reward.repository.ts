@@ -1,20 +1,15 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-
-import { Reward } from "src/model/reward.aggregate";
+import { Reward } from '../model/reward.aggregate';
 import { RewardDocument } from '../model/reward.schema';
 import { RewardMapper } from './mapper/reward.mapper';
 
 interface RewardRepository {
-    create(
-    eid: string,
-    items: string[],
-    amount: number[],
-    condition: string[],
-    ): Promise<Reward>;
-    getAll(): Promise<Reward[]>;
-    findById(rid: string): Promise<Reward | null>;
+  create(eid: string, items: string[], amount: number[]): Promise<Reward>;
+  getAll(): Promise<Reward[]>;
+  findById(rid: string): Promise<Reward | null>;
+
 }
 
 @Injectable()
@@ -23,17 +18,11 @@ export class RewardMongoose implements RewardRepository {
     @InjectModel(RewardDocument.name) private rewardModel: Model<RewardDocument>,
   ) {}
 
-  async create(
-    eid: string,
-    items: string[],
-    amount: number[],
-    condition: string[],
-  ): Promise<Reward> {
+  async create(eid: string, items: string[], amount: number[]): Promise<Reward> {
     const rewardDoc = new this.rewardModel({
       eid,
       items,
       amount,
-      condition,
     });
     const savedReward = await rewardDoc.save();
     return RewardMapper.toDomain(savedReward);
@@ -49,11 +38,5 @@ export class RewardMongoose implements RewardRepository {
     return rewardDoc ? RewardMapper.toDomain(rewardDoc) : null;
   }
 
-//   async update(rid: string, data: Partial<Reward>): Promise<void> {
-//     await this.rewardModel.updateOne({ _id: rid }, RewardMapper.toPersistence(data)).exec();
-//   }
-
-//   async delete(rid: string): Promise<void> {
-//     await this.rewardModel.deleteOne({ _id:'at  rid }).exec();
-//   }
+  
 }

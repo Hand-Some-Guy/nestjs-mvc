@@ -1,11 +1,12 @@
+import { Role } from "src/auth/dto/user.dto";
 
 // 엔티티 객체 
 export class User{
     private uid: string;
     private password: string;
-    private role: string;
+    private role: Role;
 
-    constructor(uid: string, password: string, role: string) {
+    constructor(uid: string, password: string, role: Role) {
         this.uid = uid;
         this.password = password;
         this.role = role;
@@ -19,7 +20,7 @@ export class User{
         return this.password;
     }
 
-    getRole(): string {
+    getRole(): Role {
         return this.role;
     }
 }

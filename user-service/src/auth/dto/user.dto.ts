@@ -1,12 +1,14 @@
 // 타입 
+
+export type Role = "USER" | "OPERATOR" | "AUDITOR" | "ADMIN"
+
+export type activaeType = "LOGIN" | "TEST"
+
 export interface JwtPayload {
   sub: string;
-  role: string;
+  role: Role;
 }
 
-
-// 컨트롤러, 서비스에서 통용되는 데이터 응답답 객체 
-// DTO 
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -18,11 +20,9 @@ export interface RefreshResponse {
 
 export interface UserResponse {
   id: string;
-  role: string;
+  role: Role;
 }
 
-// 컨트롤러, 서비스에서 통용되는 데이터 수신 객체 
-// DTO 
 export class LoginDto {
   id: string;
 
@@ -34,13 +34,17 @@ export class RefreshDto {
 }
 
 export class UpdateRoleDto {
-  targetid: string;
+  id: string;
 
-  role: string;
+  role: Role;
 }
 
 export class RegisterDto {
   id: string;
 
   password: string;
+}
+
+export interface ActiveTypeCountResponse {
+  [key: string]: number; // 예: { LOGIN: 5, TEST: 3 }
 }

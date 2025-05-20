@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { BadRequestException, Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { LoginDto, RefreshDto, RegisterDto, UpdateRoleDto } from './dto/user.dto';
@@ -23,13 +23,30 @@ export class AuthController {
 
   @MessagePattern({ cmd: 'updateRole' })
   async updateRole(updateRoleDto: UpdateRoleDto) {
-    this.logger.log(`UpdateRole called with id: ${updateRoleDto.targetid}, role: ${updateRoleDto.role}`);
+    this.logger.log(`UpdateRole called with id: ${UpdateRoleDto}`);
     return this.authService.updateRole(updateRoleDto);
   }
 
   @MessagePattern({ cmd: 'register' })
   async register(registerDto: RegisterDto) {
     this.logger.log(`Register called with id: ${registerDto.id}`);
-    return this.authService.register(registerDto); // newUser → register로 수정
+    return this.authService.register(registerDto); 
+  }
+
+  @MessagePattern({ cmd: 'test' })
+  async test() {
+    this.logger.log(`test called with id:`);
+    return {}
+  }
+
+  @MessagePattern({ cmd: 'activeTypeCnt' })
+  async activeTypeCnt(date: { uid: string }) {
+    this.logger.log(`ActiveTypeCnt called`);
+    try {
+      return await this.authService.activeTypeCnt(date.uid);
+    } catch (error) {
+      this.logger.error(`ActiveTypeCnt failed: ${error.message}`);
+      throw new BadRequestException(error.message);
+    }
   }
 }

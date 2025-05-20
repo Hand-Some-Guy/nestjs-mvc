@@ -1,8 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-
-import { Event } from "src/model/event.aggregate";
+import { Event } from '../model/event.aggregate';
 import { EventDocument } from '../model/event.schema';
 import { EventMapper } from './mapper/event.mapper';
 
@@ -13,7 +12,10 @@ interface EventRepository {
     dateAdded: Date,
     dateStart: Date,
     duration: number,
-    state: string
+    state: string,
+    condition: string[],
+    conditionNum: number[],
+    conditionType: string[],
   ): Promise<Event>;
   getAll(): Promise<Event[]>;
   findById(eid: string): Promise<Event | null>;
@@ -33,7 +35,10 @@ export class EventMongoose implements EventRepository {
     dateAdded: Date,
     dateStart: Date,
     duration: number,
-    state: string
+    state: string,
+    condition: string[],
+    conditionNum: number[],
+    conditionType: string[],
   ): Promise<Event> {
     const eventDoc = new this.eventModel({
       rid,
@@ -41,7 +46,10 @@ export class EventMongoose implements EventRepository {
       dateAdded,
       dateStart,
       duration,
-      state
+      state,
+      condition,
+      conditionNum,
+      conditionType,
     });
     const savedEvent = await eventDoc.save();
     return EventMapper.toDomain(savedEvent);
@@ -58,10 +66,7 @@ export class EventMongoose implements EventRepository {
   }
 
   async updateReward(eid: string, rid: string): Promise<void> {
-    this.eventModel.findOneAndUpdate(
-      { _id: eid }, 
-      { $set: { rid } }
-    ).exec();
+    await this.eventModel.findOneAndUpdate({ _id: eid }, { $set: { rid } }).exec();
   }
 
   async delete(eid: string): Promise<void> {

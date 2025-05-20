@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class RewardDocument extends Document {
   @Prop({ required: true, index: true })
   eid: string;
@@ -11,9 +11,6 @@ export class RewardDocument extends Document {
 
   @Prop({ required: true })
   amount: number[];
-
-  @Prop({ required: true })
-  condition: string[];
 }
 
 export const RewardSchema = SchemaFactory.createForClass(RewardDocument);

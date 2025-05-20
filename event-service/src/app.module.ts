@@ -4,9 +4,11 @@ import { EventModule } from './event/event.module';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+
 // @nestjs/config 테스트 
 @Module({
   imports: [
+    
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

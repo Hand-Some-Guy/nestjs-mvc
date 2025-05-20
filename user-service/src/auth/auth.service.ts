@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenMongoose } from 'src/repository/refresh-token.repository';
 import { UserMongoose } from 'src/repository/user.repository';
 import * as bcrypt from 'bcrypt';
-import { JwtPayload, LoginDto, LoginResponse, RefreshDto, RefreshResponse, RegisterDto, UpdateRoleDto, UserResponse } from './dto/user.dto';
+import { ActiveTypeCountResponse, JwtPayload, LoginDto, LoginResponse, RefreshDto, RefreshResponse, RegisterDto, UpdateRoleDto, UserResponse } from './dto/user.dto';
+import { ActivityHistoryMongoose } from 'src/repository/activity-history.repository';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(
     private readonly userRepository: UserMongoose,
     private readonly refreshTokenRepository: RefreshTokenMongoose,
+    private readonly activityHistoryRepository: ActivityHistoryMongoose,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -40,11 +42,17 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    // 기존 기록된 토큰 삭제 
     await this.refreshTokenRepository.delete(user.getId())
-    // 신규 토큰 등록
     await this.refreshTokenRepository.create(user.getId(), refreshToken);
-    // 로그인 기록 추가 
+
+    // 활동 이력 추가
+    const now = new Date();
+    await this.activityHistoryRepository.create(
+      user.getId(),
+      "LOGIN",
+      new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+      now.toTimeString().split(' ')[0],
+    );
 
     return { accessToken, refreshToken };
   }
@@ -61,12 +69,13 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-
       this.logger.log(`Login called with id: ${refreshDto.refreshToken}`);
+
       const newAccessToken = this.jwtService.sign({
         sub: payload.sub,
         role: payload.role,
       });
+
       return { accessToken: newAccessToken };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -74,13 +83,29 @@ export class AuthService {
   }
 
   async updateRole(updateRoleDto: UpdateRoleDto): Promise<UserResponse> {
-    const user = await this.userRepository.findById(updateRoleDto.targetid);
+    const user = await this.userRepository.findById(updateRoleDto.id);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    await this.userRepository.updateRole(updateRoleDto.targetid, updateRoleDto.role);
+    
+    // role 유효성 검사 
+    if (!user.getRole()) {
+      throw new UnauthorizedException('Invalid role');
+    }
+
+
+    await this.userRepository.updateRole(updateRoleDto.id, updateRoleDto.role);
     return { id: user.getId(), role: updateRoleDto.role };
   }
 
-  
+  async activeTypeCnt(uid: string): Promise<ActiveTypeCountResponse> {
+    this.logger.log('ActiveTypeCnt called');
+    try {
+      const counts = await this.activityHistoryRepository.countByType(uid);
+      return counts;
+    } catch (error) {
+      this.logger.error(`ActiveTypeCnt failed: ${error.message}`);
+      throw new BadRequestException(error.message);
+    }
+  }
 }

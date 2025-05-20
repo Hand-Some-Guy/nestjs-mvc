@@ -2,24 +2,22 @@ export class Reward {
   private rid: string;
   private eid: string;
   private items: string[];
-  private condition: string[];
   private amount: number[];
 
-  constructor(rid: string, eid: string, items: string[], amount: number[], condition: string[]) {
-    this.validate(eid, items, amount, condition);
+  constructor(rid: string, eid: string, items: string[], amount: number[]) {
+    this.validate(eid, items, amount);
     this.rid = rid;
     this.eid = eid;
     this.items = items;
     this.amount = amount;
-    this.condition = condition;
   }
 
-  private validate(eid: string, items: string[], amount: number[], condition: string[]): void {
+  private validate(eid: string, items: string[], amount: number[]): void {
     if (!eid) {
       throw new Error('Event ID is required');
     }
-    if (!items.length || !amount.length || !condition.length || items.length !== amount.length || items.length !== condition.length) {
-      throw new Error('Invalid reward data: items, amount, and condition must be non-empty and of equal length');
+    if (!items.length || !amount.length || items.length !== amount.length) {
+      throw new Error('Invalid reward data: items and amount must be non-empty and of equal length');
     }
     if (amount.some(a => a <= 0)) {
       throw new Error('Amount must be positive');
@@ -36,10 +34,6 @@ export class Reward {
 
   public getItems(): string[] {
     return this.items;
-  }
-
-  public getCondition(): string[] {
-    return this.condition;
   }
 
   public getAmount(): number[] {

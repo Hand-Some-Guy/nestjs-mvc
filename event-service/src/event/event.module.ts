@@ -15,25 +15,33 @@ import { EventDocument, EventSchema } from '../model/event.schema';
 import { RewardDocument, RewardSchema } from '../model/reward.schema';
 import { ClaimDocument, ClaimSchema } from '../model/claim.schema';
 
+import { ClientsModule, Transport } from '@nestjs/microservices';
+
 
 @Module({
   imports: [
+    ConfigModule,
     MongooseModule.forFeature([
-        // 컬랙션 스키마 정의 
       { name: EventDocument.name, schema: EventSchema },
       { name: RewardDocument.name, schema: RewardSchema },
       { name: ClaimDocument.name, schema: ClaimSchema },
     ]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'your-secret-key'),
-        signOptions: { expiresIn: '15m' },
-      }),
-      inject: [ConfigService],
-    })
+    ClientsModule.registerAsync([
+      {
+        name: 'AUTH_SERVICE',
+        imports: [ConfigModule],
+        useFactory: async (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('RABBITMQ_URL', 'amqp://rabbitmq:5672')],
+            queue: 'auth_queue',
+            queueOptions: { durable: false },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
   ],
-  // 의존성 주입 
   controllers: [EventController],
   providers: [EventService, EventMongoose, RewardMongoose, ClaimMongoose],
 })

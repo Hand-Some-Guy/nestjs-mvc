@@ -1,4 +1,4 @@
-import { EventState } from "src/event/dto/event.dto";
+import { EventState } from '../event/dto/event.dto';
 
 export class Event {
   private eid: string;
@@ -8,6 +8,9 @@ export class Event {
   private dateStart: Date;
   private duration: number;
   private state: EventState;
+  private condition: string[];
+  private conditionNum: number[];
+  private conditionType: string[];
 
   constructor(
     eid: string,
@@ -17,18 +20,32 @@ export class Event {
     dateStart: Date,
     duration: number,
     state: EventState,
+    condition: string[],
+    conditionNum: number[],
+    conditionType: string[],
   ) {
-    this.validate(title, dateAdded, dateStart, duration);
+    this.validate(title, dateAdded, dateStart, duration, condition, conditionNum, conditionType);
     this.eid = eid;
     this.rid = rid;
     this.title = title;
     this.dateAdded = dateAdded;
     this.dateStart = dateStart;
     this.duration = duration;
-    this.state = state
+    this.state = state;
+    this.condition = condition;
+    this.conditionNum = conditionNum;
+    this.conditionType = conditionType;
   }
 
-  private validate(title: string, dateAdded: Date, dateStart: Date, duration: number): void {
+  private validate(
+    title: string,
+    dateAdded: Date,
+    dateStart: Date,
+    duration: number,
+    condition: string[],
+    conditionNum: number[],
+    conditionType: string[],
+  ): void {
     if (!title) {
       throw new Error('Title is required');
     }
@@ -40,6 +57,15 @@ export class Event {
     }
     if (duration <= 0) {
       throw new Error('Duration must be positive');
+    }
+    if (condition.length !== conditionNum.length || condition.length !== conditionType.length) {
+      throw new Error('Condition arrays must have equal length');
+    }
+    if (conditionNum.some(num => num < 0)) {
+      throw new Error('Condition numbers must be non-negative');
+    }
+    if (conditionType.some(type => !type)) {
+      throw new Error('Condition types must be non-empty');
     }
   }
 
@@ -69,5 +95,17 @@ export class Event {
 
   public getState(): EventState {
     return this.state;
+  }
+
+  public getCondition(): string[] {
+    return this.condition;
+  }
+
+  public getConditionNum(): number[] {
+    return this.conditionNum;
+  }
+
+  public getConditionType(): string[] {
+    return this.conditionType;
   }
 }

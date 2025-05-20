@@ -1,5 +1,8 @@
+export enum EventState {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
 
-export type EventState = "Active" | "Disable"
 
 export class EventAddDto {
   title: string;
@@ -12,11 +15,17 @@ export class EventAddDto {
 
   duration: number;
 
-  state: EventState
+  state: EventState;
+
+  condition: string[];
+
+  conditionNum: number[];
+
+  conditionType: string[];
 }
 
 export class EventSearchDto {
-  eid: string;
+  eid?: string;
 }
 
 export class RewardAddDto {
@@ -25,12 +34,24 @@ export class RewardAddDto {
   items: string[];
 
   amount: number[];
-
-  condition: string[];
 }
 
 export class RewardSearchDto {
   rid: string;
+}
+
+export class RewardRequestDto {
+  uid: string;
+
+  rid: string;
+
+  eid: string;
+}
+
+export class ClaimSearchDto {
+  id: string;
+
+  filterType: 'uid' | 'eid' | 'rid';
 }
 
 export interface EventResponse {
@@ -40,6 +61,9 @@ export interface EventResponse {
   dateAdded: string;
   dateStart: string;
   duration: number;
+  condition: string[];
+  conditionNum: number[];
+  conditionType: string[];
 }
 
 export interface RewardResponse {
@@ -47,7 +71,6 @@ export interface RewardResponse {
   eid: string;
   items: string[];
   amount: number[];
-  condition: string[];
 }
 
 export interface ClaimResponse {
